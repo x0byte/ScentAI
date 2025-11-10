@@ -13,15 +13,13 @@ classifier = pipeline("zero-shot-classification",
                       model="facebook/bart-large-mnli",
                       device=-1)   # CPU
 
-text = ""
-
-def extract_notes(description: str, candidate_notes, threshold=0.4):
+def extract_notes(description: str, threshold=0.4):
 
     '''Returns notes relevent to the given scent description'''
 
     result = classifier(
         description,
-        candidate_notes = candidate_notes,
+        candidate_labels = candidate_notes,
         multi_label=True
     )
 
