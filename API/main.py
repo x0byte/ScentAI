@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from routes.extract_notes import *
+from routes.match import *
 
 app = FastAPI()
 
@@ -23,13 +24,9 @@ def home():
 
 @app.post("/generate")
 def generate_formula(desc: Description):
-    # # For now, fake output 
-    # text = desc.text.lower()
-    # if "rose" in text:
-    #     formula = [{"molecule": "Phenylethyl Alcohol", "ratio": 2.5}]
-    # else:
-    #     formula = [{"molecule": "Iso E Super", "ratio": 3.0}]
-    # return {"description": desc.text, "formula": formula}
 
     notes = extract_notes(desc.text)
+
+
+
     return notes
