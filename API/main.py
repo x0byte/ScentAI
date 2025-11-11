@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from routes.extract_notes import *
 from routes.match import *
+import faiss
 
 app = FastAPI()
 
@@ -15,6 +16,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+#loading the faiss index
+index = faiss.read_index("perfume_index.faiss")
+
 class Description(BaseModel):
     text: str
 
@@ -26,7 +30,6 @@ def home():
 def generate_formula(desc: Description):
 
     notes = extract_notes(desc.text)
+    return match_to_perfumes(notes)
 
 
-
-    return notes

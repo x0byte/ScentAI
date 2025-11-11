@@ -3,11 +3,10 @@ import pandas as pd
 from transformers import pipeline
 
 current_dir = os.path.dirname(__file__)  # Directory of the current script
-data_file_path = os.path.join(current_dir, "../../Data/notes_and_family.csv")
+data_file_path = os.path.join(current_dir, "../../Data/note_vocab.txt")
 
-notes_df = pd.read_csv(data_file_path)
-
-candidate_notes = notes_df["Note"].tolist()
+with open(data_file_path, "r") as file:
+    candidate_notes = [line.strip() for line in file if line.strip()]
 
 classifier = pipeline("zero-shot-classification",
                       model="facebook/bart-large-mnli",
