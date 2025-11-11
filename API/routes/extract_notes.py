@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 from transformers import pipeline
 
 current_dir = os.path.dirname(__file__)  # Directory of the current script

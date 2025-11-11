@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from routes.extract_notes import *
 from routes.match import *
 import faiss
+import os
 
 app = FastAPI()
 
@@ -17,7 +18,9 @@ app.add_middleware(
 )
 
 #loading the faiss index
-index = faiss.read_index("perfume_index.faiss")
+current_dir = os.path.dirname(__file__)
+index_path = os.path.join(current_dir, "../Data/perfume_index.faiss")
+index = faiss.read_index(index_path)
 
 class Description(BaseModel):
     text: str
@@ -30,6 +33,6 @@ def home():
 def generate_formula(desc: Description):
 
     notes = extract_notes(desc.text)
-    return match_to_perfumes(notes)
+    return match_to_perfumes(notes, index)
 
 
