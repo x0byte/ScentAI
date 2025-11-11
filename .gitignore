@@ -1,3 +1,4 @@
 .env
 .gitignore
 .DS_Store
+Data/perfume_vectors.npy
