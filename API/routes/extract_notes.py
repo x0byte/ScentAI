@@ -25,8 +25,6 @@ def extract_notes(description: str, threshold: float = 0.35, top_k: int = 30):
     note embeddings, then filters by threshold and top_k.
     """
 
-    t0 = time.perf_counter()
-
     desc_emb = embedder.encode([description], normalize_embeddings=True)[0]
     scores = note_embeddings @ desc_emb  # cosine similarities
 
@@ -39,9 +37,6 @@ def extract_notes(description: str, threshold: float = 0.35, top_k: int = 30):
         if score < threshold:
             break
         filtered.append((candidate_notes[idx], score))
-
-    t1 = time.perf_counter()
-    print(f"extract_notes took {t1 - t0:.3f}s for input length {len(description)}")
 
     return filtered    
 
