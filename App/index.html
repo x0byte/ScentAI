@@ -2,33 +2,812 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ScentAI</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
-    textarea { width: 100%; height: 100px; }
-    button { padding: 10px 20px; margin-top: 10px; }
-    pre { background: #111; color: #0f0; padding: 10px; }
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0a0f;
+      --bg-soft: #12121a;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-strong: rgba(255, 255, 255, 0.1);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f8f3ea;
+      --muted: #b8afa0;
+      --gold: #d4af37;
+      --gold-soft: rgba(212, 175, 55, 0.18);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(212, 175, 55, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(130, 110, 255, 0.08), transparent 25%),
+        radial-gradient(circle at bottom center, rgba(255, 255, 255, 0.04), transparent 35%),
+        linear-gradient(180deg, #08080d 0%, #0d0d13 45%, #11111a 100%);
+      overflow-x: hidden;
+    }
+
+    .ambient-blur {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ambient-blur::before,
+    .ambient-blur::after {
+      content: "";
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.2;
+    }
+
+    .ambient-blur::before {
+      top: -100px;
+      left: -100px;
+      background: #d4af37;
+    }
+
+    .ambient-blur::after {
+      bottom: -120px;
+      right: -80px;
+      background: #6a5cff;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 42px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(212, 175, 55, 0.22), rgba(255, 255, 255, 0.06));
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      font-size: 1.1rem;
+    }
+
+    .nav-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      align-items: stretch;
+      margin-bottom: 44px;
+    }
+
+    .hero-main,
+    .hero-side {
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 42px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-main::after {
+      content: "";
+      position: absolute;
+      inset: auto -60px -120px auto;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,175,55,0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      margin-bottom: 20px;
+      border-radius: 999px;
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      color: #ead58f;
+      font-size: 0.88rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(2.8rem, 5vw, 5rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-copy {
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.75;
+      margin-bottom: 28px;
+    }
+
+    .composer {
+      margin-top: 24px;
+    }
+
+    .input-shell {
+      position: relative;
+      border-radius: 24px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(212,175,55,0.35), rgba(255,255,255,0.06), rgba(106,92,255,0.2));
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .input-inner {
+      border-radius: 23px;
+      background: rgba(14, 14, 20, 0.92);
+      padding: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      resize: vertical;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font: inherit;
+      font-size: 1.02rem;
+      line-height: 1.7;
+    }
+
+    textarea::placeholder {
+      color: #7f7a72;
+    }
+
+    .composer-footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .helper-text {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .cta {
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 14px 22px;
+      min-width: 160px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #1a160a;
+      background: linear-gradient(135deg, #f2d57c 0%, #d4af37 50%, #b88a14 100%);
+      box-shadow:
+        0 10px 30px rgba(212, 175, 55, 0.22),
+        inset 0 1px 0 rgba(255,255,255,0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .cta:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 16px 36px rgba(212, 175, 55, 0.28),
+        inset 0 1px 0 rgba(255,255,255,0.45);
+    }
+
+    .cta:disabled {
+      opacity: 0.7;
+      cursor: wait;
+      transform: none;
+    }
+
+    .hero-side {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .side-card {
+      border-radius: 22px;
+      padding: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .side-card h3 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      color: #f0dec1;
+      letter-spacing: 0.03em;
+    }
+
+    .side-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 0.96rem;
+    }
+
+    .mood-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .tag {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #e5dccf;
+      font-size: 0.9rem;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 36px 0 20px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 22px;
+      justify-content: center;
+    }
+
+    .results-grid.five-cards {
+      grid-template-columns: repeat(4, minmax(240px, 240px));
+      justify-content: center;
+    }
+
+    .results-grid.five-cards .card.fifth-card {
+      grid-column: 2;
+    }
+
+    .card {
+      position: relative;
+      border-radius: 26px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.035));
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: var(--shadow);
+      transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+      min-height: 100%;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: cardIn 0.6s ease forwards;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(212,175,55,0.28);
+      box-shadow: 0 26px 60px rgba(0,0,0,0.55);
+    }
+
+    .card-image-wrap {
+      position: relative;
+      padding: 24px 24px 12px;
+      background:
+        radial-gradient(circle at top center, rgba(212,175,55,0.12), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+    }
+
+    .card-image {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: contain;
+      display: block;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      transition: transform 0.35s ease;
+    }
+
+    .card:hover .card-image {
+      transform: scale(1.05);
+    }
+
+    .score-badge {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      background: rgba(15, 15, 22, 0.7);
+      color: #f8df91;
+      border: 1px solid rgba(212,175,55,0.22);
+      backdrop-filter: blur(10px);
+    }
+
+    .card-body {
+      padding: 8px 22px 22px;
+    }
+
+    .card-title {
+      margin: 0 0 10px;
+      font-size: 1.18rem;
+      line-height: 1.25;
+      text-transform: capitalize;
+    }
+
+    .card-sub {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.65;
+      min-height: 52px;
+      font-size: 0.95rem;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .link-btn {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-weight: 600;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+      flex: 1;
+    }
+
+    .link-btn:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(212,175,55,0.2);
+      transform: translateY(-1px);
+    }
+
+    .empty-state,
+    .loading-state,
+    .error-state {
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      padding: 36px;
+      text-align: center;
+      color: var(--muted);
+      box-shadow: var(--shadow);
+    }
+
+    .loading-orb {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.08);
+      border-top-color: var(--gold);
+      animation: spin 0.9s linear infinite;
+    }
+
+    .footer-note {
+      margin-top: 44px;
+      text-align: center;
+      color: #8e8678;
+      font-size: 0.92rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes cardIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .results-grid.five-cards {
+        grid-template-columns: repeat(2, minmax(240px, 1fr));
+      }
+
+      .results-grid.five-cards .card.fifth-card {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-main {
+        padding: 30px;
+      }
+
+      h1 {
+        line-height: 1;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 18px 14px 60px;
+      }
+
+      .nav {
+        margin-bottom: 28px;
+      }
+
+      .hero-main,
+      .hero-side,
+      .empty-state,
+      .loading-state,
+      .error-state {
+        border-radius: 22px;
+      }
+
+      .hero-main {
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 2.4rem;
+      }
+
+      .composer-footer {
+        align-items: stretch;
+      }
+
+      .cta {
+        width: 100%;
+      }
+
+      .section-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .results-grid,
+      .results-grid.five-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .results-grid.five-cards .card.fifth-card {
+        grid-column: auto;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>🌿 ScentCraft Formula Composer</h1>
-  <p>Describe your scent:</p>
-  <textarea id="description"></textarea><br>
-  <button onclick="generate()">Decode</button>
-  <h3>Output:</h3>
-  <pre id="output"></pre>
+  <div class="ambient-blur"></div>
+
+  <main class="page">
+    <div class="nav">
+      <div class="brand">
+        <div class="brand-mark">✦</div>
+        <span>ScentAI</span>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <a href="index.html" class="nav-pill" style="text-decoration:none;">Search</a>
+        <a href="how-it-works.html" class="nav-pill" style="text-decoration:none;">How it works</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="hero-main">
+        <div class="eyebrow">fragrance matching</div>
+        <h1>Find the scent<br>that feels like you.</h1>
+        <p class="hero-copy">
+          Describe a mood, a memory, a place, a texture, a person, or a night out.
+          ScentAI turns your words into perfume matches that actually look premium enough to be obsessed over.
+        </p>
+
+        <div class="composer">
+          <div class="input-shell">
+            <div class="input-inner">
+              <textarea
+                id="description"
+                placeholder="Try something like: fresh after rain, clean white shirt, expensive hotel lobby, woody but not too dark, a little mysterious..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="composer-footer">
+            <div class="helper-text">Describe the vibe. We’ll decode the fragrance.</div>
+            <button class="cta" id="searchBtn" onclick="generate()">Decode scent</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hero-side">
+        <div class="side-card">
+          <h3>What works best</h3>
+          <p>
+            The more sensory your description, the better the match.
+            Think atmosphere, color, energy, weather, fabrics, personality, or the feeling you want to leave behind.
+          </p>
+          <div class="mood-tags">
+            <span class="tag">Clean</span>
+            <span class="tag">Woody</span>
+            <span class="tag">Dark</span>
+            <span class="tag">Fresh</span>
+            <span class="tag">Elegant</span>
+            <span class="tag">Romantic</span>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <h3>Example prompt</h3>
+          <p>
+            “Something masculine, clean, slightly spicy, fresh like the first hour after a cold shower, but still rich enough for dinner.”
+          </p>
+        </div>
+      </aside>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Top fragrance matches</h2>
+          <p>Your best perfume results will appear here.</p>
+        </div>
+      </div>
+
+      <div id="results">
+        <div class="empty-state">
+          Start with a scent description above and let the perfume cards cook.
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      Built for taste, not just search.
+    </div>
+  </main>
 
   <script>
-    async function generate() {
-      const desc = document.getElementById("description").value;
-      const res = await fetch("http://127.0.0.1:8000/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: desc })
-      });
-      const data = await res.json();
-      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+    const results = document.getElementById("results");
+    const button = document.getElementById("searchBtn");
+    const descriptionInput = document.getElementById("description");
+
+    function formatPerfumeName(name) {
+      if (!name) return "Unknown Perfume";
+      return name
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, char => char.toUpperCase());
     }
+
+    function scoreToPercent(score) {
+      if (typeof score !== "number") return null;
+
+      let percent = score;
+      if (score <= 1) {
+        percent = score * 100;
+      }
+
+      percent = Math.max(0, Math.min(100, percent));
+      return Math.round(percent);
+    }
+
+    function renderLoading() {
+      results.innerHTML = `
+        <div class="loading-state">
+          <div class="loading-orb"></div>
+          <h3>Decoding your scent profile...</h3>
+          <p>Matching atmosphere, texture, and mood to perfume data.</p>
+        </div>
+      `;
+    }
+
+    function renderError(message) {
+      results.innerHTML = `
+        <div class="error-state">
+          <h3>Something went wrong</h3>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    function renderEmpty(message = "No matches found this time. Try describing the vibe in a different way.") {
+      results.innerHTML = `
+        <div class="empty-state">
+          ${message}
+        </div>
+      `;
+    }
+
+    function scrollToResultsOnMobile() {
+      if (window.innerWidth <= 768) {
+        const firstCard = results.querySelector(".card");
+        if (firstCard) {
+          firstCard.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }
+      }
+    }
+
+    function renderPerfumes(perfumes) {
+      if (!Array.isArray(perfumes) || perfumes.length === 0) {
+        renderEmpty();
+        return;
+      }
+
+      const gridClass = perfumes.length === 5 ? "results-grid five-cards" : "results-grid";
+
+      const cards = perfumes.map((perfume, i) => {
+        const prettyName = formatPerfumeName(perfume.perfume);
+        const score = scoreToPercent(perfume.score);
+        const rank = i + 1;
+        const description = score !== null
+          ? `${score}% match for the scent profile you described.`
+          : `Matched to your scent profile.`;
+
+        const extraClass = perfumes.length === 5 && i === 4 ? "fifth-card" : "";
+
+        return `
+          <article class="card ${extraClass}" style="animation-delay:${i * 0.08}s">
+            <div class="card-image-wrap">
+              <div class="score-badge">#${rank}</div>
+              <img
+                class="card-image"
+                src="${perfume.image_url || ""}"
+                alt="${prettyName}"
+                onerror="this.style.opacity='0.25'; this.alt='Image unavailable';"
+              />
+            </div>
+
+            <div class="card-body">
+              <h3 class="card-title">${prettyName}</h3>
+              <p class="card-sub">${description}</p>
+
+              <div class="card-actions">
+                <a class="link-btn" href="${perfume.url}" target="_blank" rel="noopener noreferrer">
+                  View perfume
+                </a>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      results.innerHTML = `<div class="${gridClass}">${cards}</div>`;
+    }
+
+    async function generate() {
+      const desc = descriptionInput.value.trim();
+
+      if (!desc) {
+        renderEmpty("Give me a scent mood first — otherwise I’m just guessing in the dark.");
+        return;
+      }
+
+      localStorage.setItem("lastQuery", desc);
+
+      renderLoading();
+      button.disabled = true;
+      button.textContent = "Decoding...";
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: desc })
+        });
+
+        if (!res.ok) {
+          throw new Error(`Server returned ${res.status}`);
+        }
+
+        const perfumes = await res.json();
+        renderPerfumes(perfumes);
+        scrollToResultsOnMobile();
+      } catch (error) {
+        console.error(error);
+        renderError("Couldn’t reach the perfume engine. Make sure your backend is running and CORS is configured.");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Decode scent";
+      }
+    }
+
+    const savedQuery = localStorage.getItem("lastQuery");
+    if (savedQuery) {
+      descriptionInput.value = savedQuery;
+    }
+
+    descriptionInput.addEventListener("keydown", function (event) {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        generate();
+      }
+
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        generate();
+      }
+    });
   </script>
 </body>
 </html>

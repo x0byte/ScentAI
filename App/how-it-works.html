@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How It Works | ScentAI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --text: #f8f3ea;
+      --muted: #b8afa0;
+      --gold: #d4af37;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(212, 175, 55, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(130, 110, 255, 0.08), transparent 25%),
+        radial-gradient(circle at bottom center, rgba(255, 255, 255, 0.04), transparent 35%),
+        linear-gradient(180deg, #08080d 0%, #0d0d13 45%, #11111a 100%);
+      overflow-x: hidden;
+    }
+
+    .ambient-blur {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ambient-blur::before,
+    .ambient-blur::after {
+      content: "";
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.2;
+    }
+
+    .ambient-blur::before {
+      top: -100px;
+      left: -100px;
+      background: #d4af37;
+    }
+
+    .ambient-blur::after {
+      bottom: -120px;
+      right: -80px;
+      background: #6a5cff;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 42px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(212, 175, 55, 0.22), rgba(255, 255, 255, 0.06));
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      font-size: 1.1rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .nav-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(10px);
+      text-decoration: none;
+      transition: 0.2s ease;
+    }
+
+    .nav-pill:hover,
+    .nav-pill.active {
+      color: var(--text);
+      border-color: rgba(212,175,55,0.25);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .hero {
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      box-shadow: var(--shadow);
+      padding: 42px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      margin-bottom: 20px;
+      border-radius: 999px;
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      color: #ead58f;
+      font-size: 0.88rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(2.6rem, 5vw, 4.6rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 800px;
+      color: var(--muted);
+      font-size: 1.06rem;
+      line-height: 1.8;
+    }
+
+    .section-block {
+      margin-top: 24px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 28px 30px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+    }
+
+    .section-header h2 {
+      margin: 0 0 8px;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .content {
+      padding: 26px 30px 30px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+      padding: 24px;
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      color: #f0dec1;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .steps {
+      display: grid;
+      gap: 14px;
+    }
+
+    .step {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .step span {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .math-box {
+      margin-top: 16px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow-x: auto;
+    }
+
+    .math-box code,
+    .math-box pre {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      color: #f5e6b6;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.16);
+      color: #ddd2bc;
+      line-height: 1.7;
+    }
+
+    .footer-note {
+      margin-top: 44px;
+      text-align: center;
+      color: #8e8678;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 18px 14px 60px;
+      }
+
+      .nav {
+        margin-bottom: 28px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+      }
+
+      .hero,
+      .section-header,
+      .content,
+      .card {
+        padding-left: 22px;
+        padding-right: 22px;
+      }
+
+      .hero {
+        padding-top: 24px;
+        padding-bottom: 24px;
+      }
+
+      h1 {
+        font-size: 2.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-blur"></div>
+
+  <main class="page">
+    <div class="nav">
+      <div class="brand">
+        <div class="brand-mark">✦</div>
+        <span>ScentAI</span>
+      </div>
+
+      <div class="nav-links">
+        <a href="index.html" class="nav-pill">Search</a>
+        <a href="how-it-works.html" class="nav-pill active">How it works</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="eyebrow">Behind the matching</div>
+      <h1>How ScentAI works.</h1>
+      <p>
+        ScentAI takes the way you describe a fragrance and turns it into a similarity search problem. If you just want the simple version, read the “Not nerds” section. If you want the math and system logic underneath it, the “For nerds” section gets into embeddings, vectors, and nearest-neighbor search.
+      </p>
+    </section>
+
+    <section class="section-block">
+      <div class="section-header">
+        <h2>For not nerds</h2>
+        <p>
+          This is the plain-English version. No vector math, no jargon, just what the app is doing for a normal user.
+        </p>
+      </div>
+
+      <div class="content">
+        <div class="steps">
+          <div class="step">
+            <strong>1. You describe a vibe</strong>
+            <span>
+              You can type something simple like “fresh woody masculine” or something more expressive like “clean white shirt after rain, expensive but understated.”
+            </span>
+          </div>
+
+          <div class="step">
+            <strong>2. ScentAI interprets the feeling behind your words</strong>
+            <span>
+              It tries to understand the scent direction in your description — things like freshness, warmth, darkness, elegance, citrus, woods, spice, florals, and overall mood.
+            </span>
+          </div>
+
+          <div class="step">
+            <strong>3. It compares that to real perfume data</strong>
+            <span>
+              The system checks your description against a perfume dataset that already contains structured fragrance information.
+            </span>
+          </div>
+
+          <div class="step">
+            <strong>4. It returns the closest matches</strong>
+            <span>
+              The perfumes shown at the top are the ones that most closely fit what you described within the available dataset.
+            </span>
+          </div>
+        </div>
+
+        <div class="note">
+          The ranking does not mean a perfume is objectively better than another one. It only means it fits your description more closely according to the model and the data available.
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-header">
+        <h2>For nerds</h2>
+        <p>
+          Here’s the technical version: how text becomes vectors, how similarity is computed, and how the ranking is produced.
+        </p>
+      </div>
+
+      <div class="content">
+        <div class="grid">
+          <div class="card">
+            <h3>Step 1 — Convert perfume information into vectors</h3>
+            <p>
+              Each perfume in the dataset is represented numerically. In your current setup, this comes from perfume-related note information and structured metadata that gets transformed into an embedding or vector form that can be searched efficiently.
+            </p>
+            <div class="math-box">
+              <pre>perfume_i  →  v_i  ∈  R^d</pre>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Step 2 — Convert the user description into the same space</h3>
+            <p>
+              The user’s text is processed into a query representation. The key idea is that perfumes and user descriptions need to live in the same vector space so similarity can be measured numerically.
+            </p>
+            <div class="math-box">
+              <pre>user text  →  q  ∈  R^d</pre>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Step 3 — Measure similarity</h3>
+            <p>
+              Once the query vector and perfume vectors are in the same dimensional space, the system can compute which perfumes are closest to the query. In practice, this is commonly done using cosine similarity or inner-product search.
+            </p>
+            <div class="math-box">
+              <pre>similarity(q, v_i) = (q · v_i) / (||q|| ||v_i||)</pre>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Step 4 — Retrieve nearest neighbors with FAISS</h3>
+            <p>
+              Instead of comparing the query against every perfume one by one in a slow way, the system uses FAISS to search the vector index efficiently and return the top nearest perfumes.
+            </p>
+            <div class="math-box">
+              <pre>top_k = arg max_i similarity(q, v_i)</pre>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="grid" style="margin-top: 20px;">
+          <div class="card">
+            <h3>Why embeddings matter</h3>
+            <p>
+              Embeddings let the model capture semantic similarity rather than just exact keyword overlap. That means “clean, crisp, icy” can still match perfumes associated with freshness even if the wording does not exactly mirror the stored note labels.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Why the percentages are not absolute truth</h3>
+            <p>
+              The match percentage on the UI is really a friendly display transformation of a similarity score. It is useful for ranking and interpretation, but it should not be read as a hard scientific probability.
+            </p>
+          </div>
+        </div>
+
+        <div class="note">
+          In short: ScentAI is not guessing randomly. It is embedding perfume-related information into a vector space, embedding your description into that same space, and retrieving the nearest perfumes by similarity.
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      ScentAI blends language, structured perfume data, and vector similarity search.
+    </div>
+  </main>
+</body>
+</html>
