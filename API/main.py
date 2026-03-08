@@ -25,7 +25,14 @@ app.add_middleware(
 #loading the faiss index
 current_dir = os.path.dirname(__file__)
 index_path = os.path.join(current_dir, "../Data/perfume_index.faiss")
-index = faiss.read_index(index_path)
+index = None
+
+@app.on_event("startup")
+def load_index():
+    global index
+    print("Loading FAISS index...")
+    index = faiss.read_index(index_path)
+    print("FAISS index loaded.")
 
 class Description(BaseModel):
     text: str

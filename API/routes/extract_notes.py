@@ -11,11 +11,22 @@ with open(data_file_path, "r") as file:
 
 # Faster note extraction using sentence embeddings (1 forward pass per request).
 model_name = os.getenv("NOTE_EMB_MODEL", "all-MiniLM-L6-v2")
-embedder = SentenceTransformer(model_name)
 
-# Precompute note embeddings once at import to keep requests fast.
-note_embeddings = embedder.encode(candidate_notes, normalize_embeddings=True)
-note_embeddings = np.asarray(note_embeddings, dtype=np.float32)
+embedder = None
+note_embeddings = None
+
+def get_embedder():
+    global embedder, note_embeddings
+
+    if embedder is None:
+        print("Loading sentence transformer...")
+        embedder = SentenceTransformer(model_name)
+
+        print("Computing note embeddings...")
+        note_embeddings_local = embedder.encode(candidate_notes, normalize_embeddings=True)
+        note_embeddings = np.asarray(note_embeddings_local, dtype=np.float32)
+
+    return embedder
 
 
 def extract_notes(description: str, threshold: float = 0.35, top_k: int = 30):
@@ -25,6 +36,7 @@ def extract_notes(description: str, threshold: float = 0.35, top_k: int = 30):
     note embeddings, then filters by threshold and top_k.
     """
 
+    embedder = get_embedder()
     desc_emb = embedder.encode([description], normalize_embeddings=True)[0]
     scores = note_embeddings @ desc_emb  # cosine similarities
 
