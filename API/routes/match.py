@@ -31,16 +31,17 @@ def match_to_perfumes(probable_notes, index):
     query = query.reshape(1, -1)  # FAISS expects 2D array
     distances, indices = index.search(query, k=5)
 
-    metadata_path = os.path.join(current_dir, "../../Data/perfume_metadata.json")
+    metadata_path = os.path.join(current_dir, "../../Data/perfume_metadata_with_img.json")
     with open(metadata_path) as f:
         metadata = json.load(f)
 
     matches = []
     for idx, score in zip(indices[0], distances[0]):
         matches.append({
-            "perfume": metadata[idx]["Perfume"],
+            "perfume": metadata[idx]["perfume"],
             "score": float(score),
-            "url": metadata[idx]["url"]
+            "url": metadata[idx]["url"],
+            "image_url": metadata[idx]["image_url"]
         })
 
     return matches
