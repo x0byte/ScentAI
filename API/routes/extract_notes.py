@@ -43,9 +43,7 @@ def extract_notes(description: str, threshold: float = 0.35, top_k: int = 30):
     t1 = time.perf_counter()
     print(f"extract_notes took {t1 - t0:.3f}s for input length {len(description)}")
 
-    return filtered
-    """Todo: optimize the note extracting to millisecond speed. """
-    
+    return filtered    
 
     
 
