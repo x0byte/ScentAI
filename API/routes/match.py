@@ -2,6 +2,7 @@ import os
 import faiss 
 import numpy as np
 import json
+# from data_scraping import *
 
 current_dir = os.path.dirname(__file__)  # Directory of the current script
 

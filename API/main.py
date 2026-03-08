@@ -6,6 +6,11 @@ from routes.match import *
 import faiss
 import os
 
+
+#allowing openMP to open multiple instances
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
+
 app = FastAPI()
 
 # allow frontend to talk to this API

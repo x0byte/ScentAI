@@ -2,3 +2,4 @@
 .gitignore
 .DS_Store
 Data/perfume_vectors.npy
+Data/perfume_index.faiss
