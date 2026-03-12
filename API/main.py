@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from routes.extract_notes import extract_notes
-from routes.match import match_to_perfumes
+from .routes.extract_notes import extract_notes
+from .routes.match import match_to_perfumes
 
 import faiss
 import os
