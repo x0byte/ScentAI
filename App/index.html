@@ -708,7 +708,7 @@
         }
       }
     }
-
+    /////////////
     function renderPerfumes(perfumes) {
       if (!Array.isArray(perfumes) || perfumes.length === 0) {
         renderEmpty();
@@ -719,7 +719,9 @@
 
       const cards = perfumes.map((perfume, i) => {
         const prettyName = formatPerfumeName(perfume.perfume);
-        const score = scoreToPercent(perfume.score);
+        
+        //Changed perfume.score to perfume.final_structured_score
+        const score = scoreToPercent(perfume.final_structured_score); 
         const rank = i + 1;
         const description = score !== null
           ? `${score}% match for the scent profile you described.`
@@ -771,7 +773,7 @@
       button.textContent = "Decoding...";
 
       try {
-        const res = await fetch("https://scentai-production-ce07.up.railway.app/generate", {
+        const res = await fetch("http://127.0.0.1:8000/match", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: desc })
@@ -781,9 +783,12 @@
           throw new Error(`Server returned ${res.status}`);
         }
 
-        const perfumes = await res.json();
-        renderPerfumes(perfumes);
+        const data = await res.json();
+        
+        //Pass data.matches instead of the whole response object
+        renderPerfumes(data.matches); 
         scrollToResultsOnMobile();
+        
       } catch (error) {
         console.error(error);
         renderError("Couldn’t reach the perfume engine. Make sure your backend is running and CORS is configured.");
@@ -792,6 +797,8 @@
         button.textContent = "Decode scent";
       }
     }
+
+    ////
 
     const savedQuery = localStorage.getItem("lastQuery");
     if (savedQuery) {

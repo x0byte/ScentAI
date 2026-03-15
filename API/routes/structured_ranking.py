@@ -1,11 +1,12 @@
 import json
 import re
 import math
+from pathlib import Path
 
-#loading the perfume json
-print("Loading perfume database...")
+BASE_DIR = Path(__file__).resolve().parents[2]
+DATA_PATH = BASE_DIR / "Data" / "perfumes.json"
 
-with open("./Data/perfumes.json", "r", encoding="utf-8") as f:
+with open(DATA_PATH, "r", encoding="utf-8") as f:
     raw_perfumes = json.load(f)
 
 PERFUME_DICT = {}
@@ -175,15 +176,3 @@ def rerank_faiss_results(query_text, faiss_candidate_ids, top_k=5):
     
     return parsed_query, results[:top_k]
 
-# #testing
-# if __name__ == "__main__":
-#     # Simulate FAISS returning IDs [0, 1, 2, 4] for a search
-#     mock_faiss_ids = [0, 1, 2, 4] 
-#     user_search = "fresh citrus sweet for men"
-    
-#     parsed, top_results = rerank_faiss_results(user_search, mock_faiss_ids, top_k=3)
-    
-#     import pprint
-#     print(f"\nQUERY INTENT: {parsed['accords']} | Gender: {parsed['gender']}")
-#     print("\n--- TOP STRUCTURED RESULTS ---")
-#     pprint.pprint(top_results)
