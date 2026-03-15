@@ -773,7 +773,7 @@
       button.textContent = "Decoding...";
 
       try {
-        const res = await fetch("http://127.0.0.1:8000/match", {
+        const res = await fetch("https://scentai-production-ce07.up.railway.app/match", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: desc })
