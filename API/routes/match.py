@@ -1,53 +1,53 @@
 import os
-import faiss 
-import numpy as np
 import json
-# from data_scraping import *
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
-current_dir = os.path.dirname(__file__)  # Directory of the current script
+# Import your new structured scorer
+from .structured_ranking import rerank_faiss_results 
 
-def build_query_vector(probable_notes):
-    note_vocab_path = os.path.join(current_dir, "../../Data/note_vocab.txt")
-    with open(note_vocab_path) as f:
-        note_to_idx = {note: i for i, note in enumerate(f.read().splitlines())}
-    dim = len(note_to_idx)
-    query = np.zeros(dim, dtype=np.float32)
-
-    # probable_notes is a list of tuples [(note, score), ...]
-    for note, confidence in probable_notes:
-        if note in note_to_idx:
-            query[note_to_idx[note]] = confidence
-
-    # Normalize query vector, avoid division by zero
-    norm = np.linalg.norm(query)
-    if norm > 0:
-        query = query / norm
-    return query
+current_dir = os.path.dirname(__file__)
 
 
-def match_to_perfumes(probable_notes, index):
-    '''Returns perfumes that match the given notes'''
-    query = build_query_vector(probable_notes)
-    query = query.reshape(1, -1)  # FAISS expects 2D array
-    distances, indices = index.search(query, k=5)
+print("Booting up matching engine...")
 
-    metadata_path = os.path.join(current_dir, "../../Data/perfume_metadata_with_img.json")
-    with open(metadata_path) as f:
-        metadata = json.load(f)
+# Load embedding model
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-    matches = []
-    for idx, score in zip(indices[0], distances[0]):
-        matches.append({
-            "perfume": metadata[idx]["perfume"],
-            "score": float(score),
-            "url": metadata[idx]["url"],
-            "image_url": metadata[idx]["image_url"]
-        })
+# Load Dense FAISS index (.bin)
+index_path = os.path.join(current_dir, "../../Data/perfume_index.bin")
+faiss_index = faiss.read_index(index_path)
 
-    return matches
+# Load FAISS ID Mapping
+mapping_path = os.path.join(current_dir, "../../Data/faiss_mapping.json")
+with open(mapping_path, "r") as f:
+    ID_MAPPING = json.load(f)
 
+print("Engine ready.")
+
+
+def hybrid_search(user_query: str, final_top_k: int = 5, faiss_candidates: int = 50):
+    """
+    1. Semantic Search (FAISS) -> gets top 50 vibe matches.
+    2. Structured Rerank -> fact-checks notes/accords and returns top 5.
+    """
     
-
-
-
+    # Embed the raw user query directly
+    query_vector = embedder.encode([user_query], normalize_embeddings=True)
+    query_vector = np.array(query_vector, dtype=np.float32)
     
+    # Search FAISS
+    distances, indices = faiss_index.search(query_vector, k=faiss_candidates)
+    
+    # Map FAISS row indices back to your actual database IDs
+    candidate_ids = []
+    for idx in indices[0]:
+        if idx != -1: # -1 means FAISS didn't find enough results
+            real_id = ID_MAPPING[idx]
+            candidate_ids.append(real_id)
+            
+    # Pass the candidate IDs to our structured scorer
+    parsed_intent, top_results = rerank_faiss_results(user_query, candidate_ids, top_k=final_top_k)
+    
+    return parsed_intent, top_results
